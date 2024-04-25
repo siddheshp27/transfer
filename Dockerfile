@@ -1,35 +1,23 @@
-# Use a base image with Ubuntu OS
-FROM ubuntu:latest
+# Use a slim base image with Alpine Linux
+FROM alpine:latest
 
 # Set environment variables for Java installation
-ENV JAVA_VERSION 11
+ENV JAVA_VERSION 8
 
-# Install OpenJDK
-RUN apt-get update && apt-get install -y openjdk-${JAVA_VERSION}-jdk
+# Install necessary packages and clean up
+RUN apk --no-cache add \
+    openjdk${JAVA_VERSION}-jdk \
+    curl \
+    nodejs \
+    npm \
+    python3 \
+    g++ \
+    gcc && \
+    rm -rf /var/cache/apk/*
 
 # Set PATH for Java
-ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/default-jvm
 ENV PATH ${JAVA_HOME}/bin:${PATH}
-
-# Install Node.js (adjust the version according to your needs)
-RUN apt-get install -y curl && \
-    curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get install -y nodejs
-
-# Install Python and necessary dependencies
-RUN apt-get install -y python3 python3-pip
-
-# Install g++ and gcc
-RUN apt-get install -y g++ gcc
-
-# Install npm package manager
-# RUN apt-get install -y npm
-
-# Set Python environment variables
-ENV PATH /usr/bin/python3:${PATH}
-
-# Set g++ environment variables
-ENV PATH /usr/bin/g++:${PATH}
 
 # Install npm dependencies
 WORKDIR /app
@@ -37,10 +25,10 @@ COPY package.json package-lock.json /app/
 RUN npm install
 
 # Verify installations
-RUN node -v
-RUN java -version
-RUN g++ --version
-RUN python3 --version
+RUN node -v && \
+    java -version && \
+    g++ --version && \
+    python3 --version
 
 # Add your application files
 COPY . .
