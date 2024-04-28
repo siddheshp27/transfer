@@ -1,10 +1,9 @@
 const fs = require("fs");
-const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 
-function generateFile(lang, code) {
+function generateFile({ lang, code, id }) {
   const currdir = __dirname;
-  let filename = `${uuidv4()}.${lang}`;
+  let filename = `${id}.${lang}`;
   if (lang == "java") filename = "Main.java";
 
   const infolderpath = path.join(currdir, "input");

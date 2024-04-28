@@ -1,6 +1,6 @@
 const { exec } = require("child_process");
 
-async function compiler(folderPath, fileName, lang) {
+async function compiler(folderPath, fileName, lang, arg) {
   const fName = fileName.split(".")[0];
 
   let command;
@@ -16,7 +16,7 @@ async function compiler(folderPath, fileName, lang) {
       break;
     }
     case "java": {
-      command = `javac ${folderPath}/input/${fileName} -d ${folderPath}/output/ && java -cp ${folderPath}/output ${fName}`;
+      command = `javac ${folderPath}/input/${fileName} -d ${folderPath}/output/ && java -cp ${folderPath}/output ${fName} ${arg}`;
       break;
     }
     case "js": {

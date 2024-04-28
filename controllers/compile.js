@@ -1,27 +1,45 @@
 const generateFile = require("./../compilerTools/generateFile");
 const Compiler = require("./../compilerTools/compiler");
 const axios = require("axios");
+const { addToDatabase, getTestcases } = require("../db/dbquery");
 
 const compile = async (req, res) => {
   const lang = req.body.languageType;
   const code = req.body.code;
+  const id = req.body.id;
+  const probid = req.body.probid;
 
-  const metadata = generateFile(lang, code);
+  const metadata = generateFile({ lang, code, id });
+  if (lang == "java") {
+    console.log("java");
+    const testCaseArr = getTestcases({ id: probid });
+    let flag = false;
+    for (const testcase in testCaseArr) {
+      const output = await Compiler(
+        metadata.folderPath,
+        metadata.fileName,
+        lang,
+        testcase.input
+      );
+      if (output.trim() != testcase.output) {
+        flag = true;
+        break;
+      }
+    }
+    if (flag) {
+      const state = await addToDatabase({ id, output, status: false });
+    } else {
+      const state = await addToDatabase({ id, output, status: true });
+    }
+  } else {
+    const output = await Compiler(metadata.folderPath, metadata.fileName, lang);
+    const state = await addToDatabase({ id, output, status: true });
 
-  const output = await Compiler(metadata.folderPath, metadata.fileName, lang);
-
-  console.log(`output : ${output}`);
-  axios
-    .post("https://webhook.site/452e5d91-b134-4ada-b69e-9cbc03bd4251", output)
-    .then((response) => {
-      console.log(response);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+    console.log(`output : ${output}`);
+  }
 
   console.log(req.body);
-  res.json({ output: output });
+  res.status(200).json({ status: true });
 };
 
 module.exports = compile;
